@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>aitk</artifactId>
+        <groupId>org.ai.toolkit</groupId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>aitk-service</artifactId>
+    <dependencies>
+        <dependency>
+            <groupId>org.ai.toolkit</groupId>
+            <artifactId>aitk-dao</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.ai.toolkit</groupId>
+            <artifactId>aitk-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.ai.toolkit</groupId>
+            <artifactId>aitk-model-manager</artifactId>
+        </dependency>
+    </dependencies>
+
+</project>
