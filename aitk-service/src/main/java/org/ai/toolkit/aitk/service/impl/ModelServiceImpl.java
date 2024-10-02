@@ -188,13 +188,16 @@ public class ModelServiceImpl implements ModelService {
                 GitEnum gitEnum = modelRepositoryType.getDefaultGitEnum();
                 boolean isDownLoad = true;
                 List<String> fileList = modelDefinition.getModelFileList();
-                for (String file : fileList) {
-                    String filePath = file.startsWith("/") ? GitUtil.getModelBasePath(gitEnum) + file : GitUtil.getModelBasePath(gitEnum) + "/" + file;
-                    if (!Paths.get(filePath).toFile().exists()) {
-                        isDownLoad = false;
-                        break;
+                if (!modelId.startsWith("llm/")) {
+                    for (String file : fileList) {
+                        String filePath = file.startsWith("/") ? GitUtil.getModelBasePath(gitEnum) + file : GitUtil.getModelBasePath(gitEnum) + "/" + file;
+                        if (!Paths.get(filePath).toFile().exists()) {
+                            isDownLoad = false;
+                            break;
+                        }
                     }
                 }
+
                 if (!isDownLoad) {
                     // 下载
                     modelLoadMap.get(modelId).setState(ModelLoadStateEnum.DOWNLOAD.getValue());

@@ -17,7 +17,7 @@ public class LlamaCppTranslator<I, O> implements NoBatchifyTranslator<I, O> {
             .connectTimeout(Duration.ofMillis(100000))
             .build();
 
-    private static final String URL_FORMAT = "http://127.0.0.1:%s/completion";
+    private static final String URL_FORMAT = "http://127.0.0.1:%s/api/chat";
 
     @Override
     public void prepare(TranslatorContext ctx) {

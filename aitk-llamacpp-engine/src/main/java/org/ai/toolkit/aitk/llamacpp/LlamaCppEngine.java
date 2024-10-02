@@ -16,7 +16,7 @@ public final class LlamaCppEngine extends Engine {
     private boolean initialized;
 
     private LlamaCppEngine() {
-
+        new LlamaCppProcess().startServer();
     }
 
     static Engine newInstance() {

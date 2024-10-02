@@ -34,6 +34,8 @@
         <h2.version>2.2.224</h2.version>
         <jgit.version>6.10.0.202406032230-r</jgit.version>
         <llamacpp.version>3.3.0</llamacpp.version>
+        <commons-compress.version>1.26.2</commons-compress.version>
+
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -159,6 +161,11 @@
                 <groupId>de.kherud</groupId>
                 <artifactId>llama</artifactId>
                 <version>${llamacpp.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-compress</artifactId>
+                <version>${commons-compress.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

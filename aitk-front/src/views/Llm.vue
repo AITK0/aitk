@@ -119,10 +119,13 @@
                 }
                 if (this.newMessage.trim()) {
                     const htmlContent = this.md.render(this.newMessage);
-                    this.messages.push({historyMsg:this.newMessage,text: htmlContent, self: true});
-                    const context = this.messages.map(msg => `${msg.historyMsg}`).join("\n");
-                    const chat ={"stream":true,"temperature":0.7,"prompt":context}
-                    console.log(context)
+                    this.messages.push({historyMsg:{"role": "user","content":this.newMessage},text: htmlContent, self: true});
+                    const history=[];
+                    this.messages.forEach((item, index) => {
+                      history.push(item.historyMsg);
+                    });
+                    console.log(history);
+                    const chat ={"model":"qwen2:1.5b","stream":true,"messages":history}
                     let formData = new FormData();
                     formData.append('modelId', this.selectedModel);
                     formData.append("text", JSON.stringify(chat));
@@ -139,17 +142,20 @@
                 if (message.text.length == 0){
                     return;
                 }
-                const json = JSON.parse(message.text.replace("data:",""));
+                const json = JSON.parse(message.text);
                 console.log(json);
                 const messageToUpdate = this.messages.find(msg => msg.id != null && msg.id === message.id);
                 if (messageToUpdate) {
-                    messageToUpdate.historyMsg = messageToUpdate.historyMsg +json.content;
-                    messageToUpdate.text = this.renderMarkdown(messageToUpdate.historyMsg);
+                    messageToUpdate.historyMsg.content = messageToUpdate.historyMsg.content + json.message.content;
+                    messageToUpdate.text = this.renderMarkdown(messageToUpdate.historyMsg.content);
                 } else {
                     this.messages.push({
                         id: message.id,
-                        historyMsg: json.content,
-                        text: this.renderMarkdown(json.content),
+                        historyMsg: {
+                          "role": json.message.role,
+                          "content": json.message.content
+                        },
+                        text: this.renderMarkdown(json.message.content),
                         self: false
                     });
                 }

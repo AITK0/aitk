@@ -4,17 +4,32 @@ import ai.djl.BaseModel;
 import ai.djl.ndarray.NDManager;
 import ai.djl.ndarray.types.DataType;
 import ai.djl.nn.Blocks;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.nio.file.Files;
+import java.io.*;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Map;
 
 public class LlamaCppModel extends BaseModel {
-    private LlamaCppProcess model;
-    private int port;
+    private static Logger LOGGER = LoggerFactory.getLogger(LlamaCppModel.class);
+    private static final int PORT = 11434;
+
+    private static final String LOAD_MODEL_URL = "http://localhost:11434/api/generate";
+
+    private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofMillis(100000))
+            .build();
+
+    private static final String REQUEST_FORMAT = "{\"model\":\"%s\"}";
+
+    private static final String SUCCESS = "\"done_reason\":\"load\"";
 
     LlamaCppModel(String name, NDManager manager) {
         super(name);
@@ -25,67 +40,52 @@ public class LlamaCppModel extends BaseModel {
 
     @Override
     public void load(Path modelPath, String prefix, Map<String, ?> options) throws IOException {
-        setModelDir(modelPath);
-        wasLoaded = true;
         if (block != null) {
             throw new UnsupportedOperationException("Llama does not support dynamic blocks");
         }
-
-        if (prefix == null) {
-            prefix = modelName;
-        }
-
-        Path modelFile = findModelFile(prefix, modelDir.toFile().getName(), "model.gguf");
-        if (modelFile == null) {
-            throw new FileNotFoundException(".gguf file not found in: " + modelPath);
-        }
-        model = new LlamaCppProcess();
-        model.startServer(modelName, Arrays.asList("-m", modelFile.toAbsolutePath().toString()));
-        port = model.getPort();
-        block = Blocks.identityBlock();
-    }
-
-    public LlamaCppProcess getModel() {
-        return model;
-    }
-
-    private Path findModelFile(String... prefixes) {
-        if (Files.isRegularFile(modelDir)) {
-            Path file = modelDir;
-            modelDir = modelDir.getParent();
-            String fileName = file.toFile().getName();
-            if (fileName.endsWith(".gguf")) {
-                modelName = fileName.substring(0, fileName.length() - 5);
-            } else {
-                modelName = fileName;
-            }
-            return file;
-        }
-        for (String prefix : prefixes) {
-            Path modelFile = modelDir.resolve(prefix);
-            if (Files.isRegularFile(modelFile)) {
-                return modelFile;
-            }
-            if (!prefix.endsWith(".gguf")) {
-                modelFile = modelDir.resolve(prefix + ".gguf");
-                if (Files.isRegularFile(modelFile)) {
-                    return modelFile;
+        new LlamaCppProcess().runCmd(Arrays.asList("pull", modelName), false);
+        boolean isBreak = false;
+        while (true) {
+            try {
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(LOAD_MODEL_URL))
+                        .POST(HttpRequest.BodyPublishers.ofString(String.format(REQUEST_FORMAT, modelName)))
+                        .build();
+                HttpResponse<InputStream> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofInputStream());
+                BufferedReader reader = new BufferedReader(new InputStreamReader(response.body()));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.contains(SUCCESS)) {
+                        isBreak = true;
+                    }
+                    LOGGER.info(line);
                 }
+                if (isBreak) {
+                    break;
+                }
+                Thread.sleep(300);
+            } catch (Exception e) {
+                LOGGER.warn("LlamaCppModel#load error", e);
             }
         }
-        return null;
+
+        block = Blocks.identityBlock();
+        wasLoaded = true;
     }
+
 
     @Override
     public void close() {
-        if (model == null) {
+        if (!wasLoaded) {
             return;
         }
-        model.stopServer();
+        LlamaCppProcess stop = new LlamaCppProcess();
+        stop.runCmd(Arrays.asList("stop", modelName), false);
         super.close();
     }
 
     public int getPort() {
-        return port;
+        return PORT;
     }
+
 }

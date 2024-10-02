@@ -72,7 +72,8 @@ public class LlamaCppModelDefinition extends AbstractBaseModelDefinition<String,
         Criteria<String, Object> llamaCpp =
                 Criteria.builder()
                         .setTypes(String.class, Object.class)
-                        .optModelPath(getModelPath(modelPath))
+                        .optOption("modelName", size)
+                        .optModelPath(getModelPath("llm/model.json"))
                         .optTranslatorFactory(new LlamaCppTranslatorFactory())
                         .optEngine("LlamaCpp")
                         .build();
