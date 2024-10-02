@@ -63,7 +63,7 @@ public class LlamaCppModel extends BaseModel {
                 if (isBreak) {
                     break;
                 }
-                Thread.sleep(300);
+                Thread.sleep(5000);
             } catch (Exception e) {
                 LOGGER.warn("LlamaCppModel#load error", e);
             }

@@ -41,7 +41,7 @@
                     ></el-input>
                 </el-col>
                 <el-col :span="2">
-                    <el-button type="primary" @click="sendMessage">发送</el-button>
+
                 </el-col>
             </el-row>
         </div>
@@ -125,7 +125,8 @@
                       history.push(item.historyMsg);
                     });
                     console.log(history);
-                    const chat ={"model":"qwen2:1.5b","stream":true,"messages":history}
+                    const model = this.options.find(element=>element.value == this.selectedModel).label;
+                    const chat ={"model":model,"stream":true,"messages":history}
                     let formData = new FormData();
                     formData.append('modelId', this.selectedModel);
                     formData.append("text", JSON.stringify(chat));
